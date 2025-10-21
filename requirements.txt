@@ -1,0 +1,10 @@
+flask
+flask-socketio
+eventlet  # Or gevent - needed for Flask-SocketIO production server
+numpy
+opencv-python-headless # Use headless for server environments
+tensorflow # Or tensorflow-cpu if you don't need GPU
+scikit-learn # Needed for LabelEncoder used in train_model.py logic
+Pillow # For image handling
+python-engineio>=4.3.0 # Often needed for SocketIO compatibility
+python-socketio>=5.0.2
