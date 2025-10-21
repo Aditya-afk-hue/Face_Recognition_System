@@ -209,4 +209,6 @@ if __name__ == '__main__':
     # --- CHANGED: Make sure you are binding to 0.0.0.0 ---
     # Your log showed 127.0.0.1, which is also fine for local testing
     # But 0.0.0.0 is more flexible.
-    eventlet.wsgi.server(eventlet.listen(('localhost', 5000)), app)
+
+    # This is what Render requires:
+    eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 5000)), app)
