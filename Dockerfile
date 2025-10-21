@@ -20,13 +20,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code into the container
 COPY . .
 
-# Fix for TemplateNotFound: Create templates folder and move index.html into it
-RUN mkdir -p templates
-RUN mv index.html templates/
-
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
 
 # Run app.py when the container launches using eventlet
 CMD ["python", "app.py"]
-
