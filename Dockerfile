@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Install system dependencies needed by OpenCV
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -23,11 +23,5 @@ COPY . .
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
 
-# Define environment variable (optional, can be useful)
-# ENV NAME World
-
 # Run app.py when the container launches using eventlet
-# Using gunicorn is often preferred for production Flask apps with eventlet/gevent
-# CMD ["gunicorn", "--worker-class", "eventlet", "-w", "1", "--bind", "0.0.0.0:5000", "app:app"]
-# For simpler testing/deployment, python app.py with eventlet works too:
 CMD ["python", "app.py"]
