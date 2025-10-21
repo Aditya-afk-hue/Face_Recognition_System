@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Face Recognition</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #videoElement,
+      #processedImage {
+        border: 1px solid black;
+        margin: 10px;
+      }
+      #videoElement {
+        display: none;
+      } /* Hide raw video feed initially */
+    </style>
+  </head>
+  <body>
+    <h1>Face Recognition Stream</h1>
+    <p id="status">Connecting...</p>
+    <video
+      id="videoElement"
+      width="640"
+      height="480"
+      autoplay
+      playsinline
+    ></video>
+    <canvas id="canvas" width="640" height="480" style="display: none"></canvas>
+    <img id="processedImage" width="640" height="480" src="" />
+
+    <script>
+      const video = document.getElementById("videoElement");
+      const canvas = document.getElementById("canvas");
+      const context = canvas.getContext("2d");
+      const processedImage = document.getElementById("processedImage");
+      const statusElement = document.getElementById("status");
+      const FPS = 10; // Send X frames per second to the server
+
+      // --- Socket.IO Connection ---
+      // Use window.location.origin for flexibility during deployment
+      const socket = io(window.location.origin);
+
+      socket.on("connect", () => {
+        console.log("Connected to server");
+        statusElement.textContent = "Connected. Starting webcam...";
+        startWebcam();
+      });
+
+      socket.on("disconnect", () => {
+        console.log("Disconnected from server");
+        statusElement.textContent = "Disconnected from server.";
+      });
+
+      socket.on("connect_error", (err) => {
+        console.error("Connection Error:", err);
+        statusElement.textContent = `Connection Error: ${err.message}`;
+      });
+
+      // --- Webcam Access ---
+      function startWebcam() {
+        if (navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices
+            .getUserMedia({ video: true })
+            .then(function (stream) {
+              video.srcObject = stream;
+              video.play();
+              statusElement.textContent = "Webcam active. Streaming...";
+              // Start sending frames
+              setInterval(() => {
+                sendFrame();
+              }, 1000 / FPS);
+            })
+            .catch(function (error) {
+              console.error(
+                "Something went wrong accessing the webcam!",
+                error
+              );
+              statusElement.textContent =
+                "Error accessing webcam: " + error.message;
+            });
+        } else {
+          statusElement.textContent =
+            "getUserMedia not supported on your browser!";
+        }
+      }
+
+      // --- Send Frame to Server ---
+      function sendFrame() {
+        if (!video.srcObject || video.paused || video.ended) {
+          return; // Don't send if video stream isn't active
+        }
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataURL = canvas.toDataURL("image/jpeg", 0.7); // Quality 0.7
+        socket.emit("image", dataURL);
+      }
+
+      // --- Receive Processed Frame ---
+      socket.on("response_back", function (image_data) {
+        processedImage.src = image_data;
+      });
+
+      // Optional: Handle errors from backend
+      socket.on("process_error", function (data) {
+        console.error("Backend Error:", data.message);
+        // Maybe display an error message to the user
+      });
+    </script>
+  </body>
+</html>
